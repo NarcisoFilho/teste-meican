@@ -15,6 +15,7 @@ function LMap(canvasDivId) {
     this._canvasDivId = canvasDivId;
     this._map;                          // Leaflet Map
     this._nodes = [];                   // markers/nodes container
+    this._stackDomainsToBeExpanded = [];
     this._nodesL = []; 
     this._nodesN = []; 
     this._links = [];                   // polylines/links/edges container
@@ -26,29 +27,48 @@ function LMap(canvasDivId) {
     this._nodeAutoInc = 1;
     this._linkAutoInc = 1;
     this._expandedDomainNodes = [];
+    this._lockRoutine = false;
 };
 
 LMap.prototype.show = function(instantRefresh) {
     let mapId = "map-n";
-
+    
     if(flagPortLocation)
-        mapId = "map-l";
-
+    mapId = "map-l";
+    
     if($('#'+mapId).length == 1) {
         $('#'+mapId).show();
     } else {
         $("#"+this._canvasDivId).append('<div id="'+mapId+'" style="width:100%; height:100%;"></div>');
         this.build(mapId);
     }
-
+    
     var currentMap = this._map;
-
+    
     if(instantRefresh)
-        this._map.invalidateSize(true);
+    this._map.invalidateSize(true);
     else
-        setTimeout(function() {
-            currentMap.invalidateSize(true);
-        }, 200);
+    setTimeout(function() {
+        currentMap.invalidateSize(true);
+    }, 200);
+    
+    
+    //this.getNode.forEach(fit_grouped_default_domain_state);
+    // let node_tested;
+    // let i;
+    // for( i = 0 ; i < this._nodes.length ; i++ ){
+    //     console.log("blabla ");
+    //     node_tested = this._nodes[i];
+    //     if( node_tested.type == "domain" ){
+    //         console.log("Domain node located: " + node_tested.id);
+            // if(default_is_not_grouped )
+            //     this.expandLocations( node_tested );
+        // }
+    // }
+    
+    
+    
+        
 }
 
 LMap.prototype.hide = function() {
@@ -260,7 +280,7 @@ LMap.prototype.addLink = function(from, to, partial, cap, color, mode) {
     link.on('click', function(e) {
         $("#"+current._canvasDivId).trigger("lmap.linkClick", link);
     });
-
+    
     link.on('mouseover', function(e) {
         $("#"+current._canvasDivId).trigger("lmap.linkHover", link);
     });
@@ -326,9 +346,10 @@ LMap.prototype.getParentPosition = function(port) {
 LMap.prototype.addNode = function(port, color, mode) {
     if(!port.network)
         return;
+    
     if (!color) 
-        color = port.network.domain.color;
-
+    color = port.network.domain.color;
+    
     if(flagPortLocation && port.lat != null && port.lng != null) {
         var pos = L.latLng([port.lat,port.lng]);
     } else if (!flagPortLocation && typeof port.network !== 'undefined') {
@@ -383,13 +404,30 @@ LMap.prototype.addNode = function(port, color, mode) {
 
         this._nodes.push(node);
         this._cluster.addLayer(node);
+        if( !flagPortLocation ){
+            if (port.network.domain.grouped_nodes == 0){
+                this._stackDomainsToBeExpanded.push(node.options.id);
+                console.log("LLL = " + node.options.id);
+            }
+        }
 
         var currentMap = this;
 
         node.on('click', function(e) {
             $("#"+currentMap._canvasDivId).trigger("lmap.nodeClick", node);
         });
-    } else {
+       
+
+        // if( !this._lockRoutine ){
+            // if (port.network.domain.grouped_nodes == false ){
+                //         this._lockRoutine = true;                
+                //         //this.expandLocations(node.options.id)
+                //         console.log("Expanded domain: " + node.options.id );
+                //         this._lockRoutine = false;                
+            // }            
+        // }                    
+        // return node.options.id;
+    } else {        
         node.options.ports.push(port);
         let configIcon = '" d="M1,11a10,10 0 1,0 20,0a10,10 0 1,0 -20,0"/>';
 
@@ -409,15 +447,9 @@ LMap.prototype.addNode = function(port, color, mode) {
             '</svg>',
             className: 'marker-icon-svg',
         }));
+        
+        // return -1;
     }
-    if(flagPortLocation == false){
-        console.log(port.network.domain.grouped_nodes);
-        if(port.network.domain.grouped_nodes == false){
-            console.log("hello world");
-            this.expandLocations(node.options.id);
-        }
-    }
-    
 }
 
 LMap.prototype.prepareLabels = function() {
@@ -815,7 +847,15 @@ LMap.prototype.focusNodes = function() {
 }
 
 LMap.prototype.loadTopology = function(withLinks) {
+    var current = this;
+    
     this._loadDomains(withLinks);
+
+    // Expansion of locations of domains with this property
+    $( document ).ajaxStop(function() {
+        while(current._stackDomainsToBeExpanded.length > 0)
+            current.expandLocations(current._stackDomainsToBeExpanded.pop());
+    });
 }
 
 LMap.prototype._loadDomains = function(withLinks) {
@@ -829,9 +869,9 @@ LMap.prototype._loadDomains = function(withLinks) {
             for (var i = current._topology['domains'].length - 1; i >= 0; i--) {
                 current._topology['domains'][i]['providers'] = [];
             }
-            current._loadProviders(withLinks);
+            current._loadProviders(withLinks);           
         }
-    });
+    });    
 }
 
 LMap.prototype._loadProviders = function(withLinks) {
@@ -880,6 +920,7 @@ LMap.prototype._loadNetworks = function(withLinks) {
 
 LMap.prototype._loadPorts = function(withLinks) {
     var current = this;
+    // var domain_node_id;
     $.ajax({
         url: baseUrl+'/topology/port/json?dir=BI&type=ALL',
         method: "GET",        
@@ -898,8 +939,9 @@ LMap.prototype._loadPorts = function(withLinks) {
             }
 
             for (var i = current._topology['ports'].length - 1; i >= 0; i--) {
-                if(current._topology['ports'][i].type == 'NSI')
+                if(current._topology['ports'][i].type == 'NSI'){
                     current.addNode(current._topology['ports'][i]);
+                }
             }
             current.prepareLabels();
             if(withLinks)
@@ -1047,21 +1089,24 @@ LMap.prototype.hasLocation = function(networkId) {
 
 LMap.prototype.expandLocations = function(nodeId) {
     flagPortLocation = true;
+    
     let node = this.getNode(nodeId);
     let nodes = this.getNodes();
     let ports = this.getTopology()['ports'];
     let domainId = node.options.ports[0].network.domain_id;
     
     this.addExpandedDomainNode(node);
-
+    
     for (var i = ports.length - 1; i >= 0; i--) {
         if(ports[i].network.domain_id == domainId){
             this.addNode(
                 ports[i]
-            );
+                );
+            }
         }
-    }
     this.hideNode(node);
+    
+    flagPortLocation = false;
 }
 
 LMap.prototype.groupLocations = function(nodeId) {
