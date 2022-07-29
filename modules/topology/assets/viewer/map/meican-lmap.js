@@ -51,23 +51,6 @@ LMap.prototype.show = function(instantRefresh) {
     setTimeout(function() {
         currentMap.invalidateSize(true);
     }, 200);
-    
-    
-    //this.getNode.forEach(fit_grouped_default_domain_state);
-    // let node_tested;
-    // let i;
-    // for( i = 0 ; i < this._nodes.length ; i++ ){
-    //     console.log("blabla ");
-    //     node_tested = this._nodes[i];
-    //     if( node_tested.type == "domain" ){
-    //         console.log("Domain node located: " + node_tested.id);
-            // if(default_is_not_grouped )
-            //     this.expandLocations( node_tested );
-        // }
-    // }
-    
-    
-    
         
 }
 
@@ -407,7 +390,6 @@ LMap.prototype.addNode = function(port, color, mode) {
         if( !flagPortLocation ){
             if (port.network.domain.grouped_nodes == 0){
                 this._stackDomainsToBeExpanded.push(node.options.id);
-                console.log("LLL = " + node.options.id);
             }
         }
 
@@ -439,12 +421,29 @@ LMap.prototype.addNode = function(port, color, mode) {
             iconAnchor: [11, 22],
             popupAnchor: [0,-24],
             tooltipAnchor: [14, -12],
-            html: '<svg width="25" height="27" xmlns="http://www.w3.org/2000/svg">' + 
-            '<g>' +
+            // html: '<img src="t.svg" alt="tyy">',
+            html: '<svg width="250" height="270" xmlns="http://www.w3.org/2000/svg">' + 
             //http://complexdan.com/svg-circleellipse-to-path-converter/
-            '<path stroke="black" fill="' + color + configIcon + 
-            '</g>' + 
+            // '<image href="t2h.png" height="50px" width="60px"/>' +
+            // '<image xlink:href="t2h.png" type="image/png" height="50px" width="60px"></image>' +
+            '<image href="/images/swt.png" height="50px" width="60px"></image>' +
+            // '<image xlink:href="/media/narciso/NarcisoHD/UFRGS/OpenRan/meican_development/meican/modules/topology/assets/viewer/map/t.svg" height="50px" width="60px"/>' +
+            // '<image xlink:href="/media/narciso/NarcisoHD/UFRGS/OpenRan/meican_development/meican/modules/topology/assets/viewer/map/t2h.png" type="image/png" height="50px" width="60px"/>' +
+            // '<image href="file:/media/narciso/NarcisoHD/UFRGS/OpenRan/meican_development/meican/modules/topology/assets/viewer/map/t2h.png" height="50px" width="60px"/>' +
+            // '<image href="file:t2h.png" height="50px" width="60px"/>' +
+            // '<image href="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Simple_icon_time.svg/2560px-Simple_icon_time.svg.png" height="50px" width="60px"></image>' +
+            // '<image href="https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Simple_icon_time.svg/2560px-Simple_icon_time.svg.png" height="50px" width="60px"/>' +
+            // '<image href="https://www.shihoriobata.com/wp-content/uploads/2021/09/fox-drawing-easy-web.jpg" height="50px" width="60px"/>' +
+            // '<image href="t.svg" height="200px" width="200px"/>' +
+            // '<path stroke="black" fill="' + color + configIcon + 
             '</svg>',
+
+            // html: '<svg width="25" height="27" xmlns="http://www.w3.org/2000/svg">' + 
+            // '<g>' +
+            // //http://complexdan.com/svg-circleellipse-to-path-converter/
+            // '<path stroke="black" fill="' + color + configIcon + 
+            // '</g>' + 
+            // '</svg>',
             className: 'marker-icon-svg',
         }));
         
@@ -853,8 +852,11 @@ LMap.prototype.loadTopology = function(withLinks) {
 
     // Expansion of locations of domains with this property
     $( document ).ajaxStop(function() {
-        while(current._stackDomainsToBeExpanded.length > 0)
-            current.expandLocations(current._stackDomainsToBeExpanded.pop());
+        while(current._stackDomainsToBeExpanded.length > 0){
+            current.expandLocations( current._stackDomainsToBeExpanded.pop() );
+            current.removeLinks();
+            current._loadLinks();
+        }
     });
 }
 
@@ -920,7 +922,7 @@ LMap.prototype._loadNetworks = function(withLinks) {
 
 LMap.prototype._loadPorts = function(withLinks) {
     var current = this;
-    // var domain_node_id;
+
     $.ajax({
         url: baseUrl+'/topology/port/json?dir=BI&type=ALL',
         method: "GET",        
