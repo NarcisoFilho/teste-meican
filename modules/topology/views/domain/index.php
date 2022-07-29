@@ -37,6 +37,7 @@ $this->params['header'] = [Yii::t('topology', 'Domains'), [Yii::t('home', 'Home'
             'enableClientValidation' => false,
         ]);
 
+        
         Pjax::begin();     
         
         echo Grid::widget([
@@ -80,11 +81,43 @@ $this->params['header'] = [Yii::t('topology', 'Domains'), [Yii::t('home', 'Home'
                 //     // 'headerOptions'=>['style'=>'width: 5%;'],
                 //     'headerOptions'=>['style'=>'width: 46%;'],
                 // ],
+                // [
+                //     'label' => Yii::t('topology', 'Group Locations'),
+                //     'value' => 'grouped_nodes',
+                //     // 'headerOptions'=>['style'=>'width: 5%;'],
+                //     'headerOptions'=>['style'=>'width: 46%;'],
+                // ],
+                // [                    
+                //     'name'=>'imageUrl',
+                //     'type'=>'html',                
+                //     'value'=>'CHtml::image(https://www.shihoriobata.com/wp-content/uploads/2021/09/fox-drawing-easy-web.jpg)',
+                //     'headerOptions'=>['style'=>'width: 46%;']
+                // ],
+                // [
+                //     'class' => 'yii\grid\RadioButtonColumn',
+                //     'radioOptions' => function ($model) {
+                //          return [
+                //              'value' => $model['grouped_nodes'],
+                //              'checked' => $model['grouped_nodes'] == 2
+                //          ];
+                //      }
+                // ],
                 [
-                    'label' => Yii::t('topology', 'Group Locations'),
-                    'value' => 'grouped_nodes',
-                    // 'headerOptions'=>['style'=>'width: 5%;'],
-                    'headerOptions'=>['style'=>'width: 46%;'],
+                    'attribute' => 'grouped_nodes',
+            
+                    'format' => ['html'],
+            
+                    'filter' => false,
+            
+                    'value' => function ($data) {
+            
+                        if ($data['grouped_nodes'])           
+                            return Html::img('@web/images/green_checked.png', ['width' => '25px']);            
+                                    
+                        return Html::img('@web/images/red_unchecked.png', ['width' => '25px']);
+            
+                    },
+            
                 ],
             ),
         ]);
@@ -92,7 +125,6 @@ $this->params['header'] = [Yii::t('topology', 'Domains'), [Yii::t('home', 'Home'
         Pjax::end(); 
 
         ActiveForm::end();
-
         ?>
     </div>
 </div>

@@ -37,8 +37,8 @@ $form= ActiveForm::begin([
         <hr>
 
         <center> <h4> <em>Default View Settings</em> </h4> </center>
-        <?= $form->field($domain, 'grouped_nodes')->checkBox(['class'=>'icheck' , 'value' => true]); ?>
-        
+        <?= $form->field($domain, 'grouped_nodes')->checkBox(['class'=>'icheck' , 'value' => true, 'label' => 'Group Nodes in Inicialization']); ?>  
+        <!-- <?= 123123123 ?>   -->
     </div>
     <div class="box-footer">
         <div class="form-group">
@@ -48,5 +48,6 @@ $form= ActiveForm::begin([
         </div>
     </div>
 </div>
+
 
 <?php ActiveForm::end(); ?>
