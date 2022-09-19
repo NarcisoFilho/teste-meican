@@ -112,7 +112,7 @@ $this->params['header'] = [Yii::t('topology', 'Domains'), [Yii::t('home', 'Home'
                     'value' => function ($data) {
             
                         if ($data['grouped_nodes'])           
-                            return Html::img('@web/images/green_checked.png', ['width' => '25px']);            
+                            return Html::img('@web/images/green_checked2.png', ['width' => '25px']);            
                                     
                         return Html::img('@web/images/red_unchecked.png', ['width' => '25px']);
             
